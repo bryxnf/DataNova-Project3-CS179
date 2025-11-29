@@ -40,7 +40,7 @@ class ContainerShip:
 
     #created this function to make the tuple of tuples unchangleable(so i can compare the ship for search algorithms)
     def grid_tuple(self):
-        return tuple(tuple(row) for row in self.grid())
+        return tuple(tuple(row) for row in self.grid)
     
     #finds the top container within the column
     def get_top_container(self,col: int)-> Tuple[Optional[Tuple[int, int]], int]:
@@ -127,7 +127,7 @@ class ContainerShip:
         r2,c2 = end_pos[0] - 1, end_pos[1] -1
 
         #test cases
-        if new_ship.grid[r1][c2] != weight:
+        if new_ship.grid[r1][c1] != weight:
             raise ValueError(f"Attempted to move but start cell ({start_pos}) doesnt contain the given weight")
         if new_ship.grid[r2][c2] != 0:
             raise ValueError("Attempted to move into a non-empty slot")
