@@ -3,10 +3,10 @@ import time
 
 class Logger:
 
+    # Create Logs folder in SAME directory as main.py
     def __init__(self):
         self.lines = []
 
-        # Create Logs folder in SAME directory as main.py
         baseDir = os.path.dirname(os.path.abspath(__file__))
         self.logsDir = os.path.join(baseDir, "logs")
         os.makedirs(self.logsDir, exist_ok=True)
@@ -25,8 +25,8 @@ class Logger:
         self.lines.append(message)
         print(message)
 
+    # Filename example: KeoghsPort10_18_2023_0204.txt
     def writeToFile(self) -> str:
-        # Filename example: KeoghsPort10_18_2023_0204.txt
         filename = f"KeoghsPort{time.strftime('%m_%d_%Y_%H%M')}.txt"
         full_path = os.path.join(self.logsDir, filename)
 
