@@ -2,10 +2,7 @@ def loadManifest(shipCase):
     shipGrid = [["NAN" for _ in range(12)] for _ in range(8)]
 
     with open(shipCase, "r") as manifest:
-        for containerInfo in manifest:
-            if not containerInfo.strip():
-                continue
-            
+        for containerInfo in manifest:            
             #need to separate the parts because each line has [01,01], {00000}, NAN structure
             information = containerInfo.strip().split(',')
             rowInfo = information[0][1:3]
@@ -15,13 +12,12 @@ def loadManifest(shipCase):
 
             rows = int(rowInfo)
             columns = int(columnInfo)
-            weight = int(tareInfo)
 
             if itemInfo in ["NAN", "UNUSED"]:
                 shipGrid[rows - 1][columns - 1] = itemInfo
             else:
                 shipGrid[rows - 1][columns - 1] = {
-                    "weight": weight,
+                    "weight": tareInfo,
                     "info": itemInfo}
                 
     return shipGrid
