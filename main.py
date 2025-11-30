@@ -19,6 +19,10 @@ def main():
     
     if not filename:
         logger.log("Path provided was not found.")
+        logger.log("Program was shut down.")
+        logPath = logger.writeToFile()
+
+        logger.logRaw(f"\nSession log written to: {logPath}")
         sys.exit(1)
     
     if os.path.isabs(filename):
@@ -29,6 +33,10 @@ def main():
 
     if not os.path.exists(filePath):
         logger.log(f"ERROR: File does not exist: {filePath}")
+        logger.log("Program was shut down.")
+        logPath = logger.writeToFile()
+
+        logger.logRaw(f"\nSession log written to: {logPath}")
         sys.exit(1)
 
     parser = ManifestParser()
@@ -39,6 +47,11 @@ def main():
 
     for entry in parserFile:
         print(format_entry(entry))
+
+    logger.log("Program was shut down.")
+    logPath = logger.writeToFile()
+
+    logger.logRaw(f"\nSession log written to: {logPath}")
 
 
 if __name__ == "__main__":
