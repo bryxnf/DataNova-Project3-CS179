@@ -8,7 +8,7 @@ class Logger:
 
         # Create Logs folder in SAME directory as main.py
         baseDir = os.path.dirname(os.path.abspath(__file__))
-        self.logsDir = os.path.join(baseDir, "Logs")
+        self.logsDir = os.path.join(baseDir, "logs")
         os.makedirs(self.logsDir, exist_ok=True)
 
     def timestamp(self) -> str:
