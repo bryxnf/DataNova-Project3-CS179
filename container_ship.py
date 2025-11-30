@@ -167,24 +167,35 @@ class ContainerShip:
         if not self.is_exposed(row_idx, col_idx):
             return results
 
-        start_col = col_idx
-        start_row_1 = row_idx + 1
+        start_pos = (row_idx + 1, col_idx + 1)
 
-        # scan left
-        for c in range(start_col - 1, -1, -1):
-            # path cell must be empty
+        # --- scan LEFT until blocked ---
+        c = col_idx - 1
+        last_valid_left = None
+
+        while c >= 0:
+            if self.grid[row_idx][c] != 0:
+                break  # blocked
+            if self.is_supported(row_idx, c):
+                last_valid_left = (row_idx + 1, c + 1)
+            c -= 1
+
+        if last_valid_left is not None:
+            results.append((start_pos, last_valid_left, weight))
+
+        # --- scan RIGHT until blocked ---
+        c = col_idx + 1
+        last_valid_right = None
+
+        while c < self.max_col:
             if self.grid[row_idx][c] != 0:
                 break
-            # check support for placing here
             if self.is_supported(row_idx, c):
-                results.append(((start_row_1, start_col + 1), (start_row_1, c + 1), weight))
+                last_valid_right = (row_idx + 1, c + 1)
+            c += 1
 
-        # scan right
-        for c in range(start_col + 1, self.max_col):
-            if self.grid[row_idx][c] != 0:
-                break
-            if self.is_supported(row_idx, c):
-                results.append(((start_row_1, start_col + 1), (start_row_1, c + 1), weight))
+        if last_valid_right is not None:
+            results.append((start_pos, last_valid_right, weight))
 
         return results
     
@@ -308,14 +319,3 @@ class ContainerShip:
         rows_to_print = [" ".join(f"{val:5}" for val in row[:self.max_col]) for row in reversed(self.grid)]
         grid_str = "\n".join(rows_to_print)
         return (f"Ship(Port:{self.port_weight}, Starboard:{self.starboard_weight}, " f"Total:{self.total_weight}, Diff:{self.get_balance_difference()})\n{grid_str}")
-
-    
-
-
-
-
-        
-
-
-    
-        
