@@ -48,6 +48,13 @@ def main():
     for entry in parserFile:
         print(format_entry(entry))
 
+    totBalMin = 34
+    totalBalMove = 9
+    # If the ship balance was not found
+    logger.log(f"Balance solution was not found for {os.path.basename(filePath)}")
+    # else we do this
+    logger.log(f"Balance solution found, it will require {totalBalMove} moves/{totBalMin} minutes.")
+
     logger.log("Program was shut down.")
     logPath = logger.writeToFile()
 

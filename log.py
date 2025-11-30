@@ -35,3 +35,8 @@ class Logger:
                 f.write(line + "\n")
 
         return full_path
+    
+    def progShutDown(self) -> None:
+        # Basically we will remove the redudency of calling end
+        # function multiple places and instead call this when we get the error
+        return None
