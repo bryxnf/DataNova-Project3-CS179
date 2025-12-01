@@ -55,14 +55,16 @@ def containersVisualization(shipGrid, source = None, target = None, craneParkLoc
             else:
                 info = str(container["weight"])
 
-            if source == (row, column):
-                info = f"{green}{info}{original}"
-            elif target == (row, column):
-                info = f"{red}{info}{original}"
+            visible = info  
+            padded = visible.rjust(columnWidth)
 
-            rows += info.rjust(columnWidth)
-        
+            if source == (row, column):
+                padded = f"{green}{padded}{original}"
+            elif target == (row, column):
+                padded = f"{red}{padded}{original}"
+            rows += padded
         print(rows)
+
     #the column headers
     columnHeader = ""
     for column in range(1, 13):
@@ -76,7 +78,7 @@ def containersVisualization(shipGrid, source = None, target = None, craneParkLoc
 
 def main():
     grid = loadManifest("testFiles/ShipCase5.txt")
-    containersVisualization(grid)
+    containersVisualization(grid, None, (1, 4), "source")
 
 if __name__ == "__main__":
     main()
