@@ -104,7 +104,7 @@ class ContainerShip:
         up_from_pick = down_to_pick
         horizontal = abs(c1 - c2)
         down_to_drop = (MAX_ROWS + 1)-r2
-        up_from_drop = down_to_pick
+        up_from_drop = down_to_drop
 
         total = up_from_pick + down_to_pick + horizontal + down_to_drop + up_from_drop
         return int(total)
