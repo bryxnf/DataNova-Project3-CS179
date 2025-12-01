@@ -27,10 +27,15 @@ def containersVisualization(shipGrid, source = None, target = None, craneParkLoc
     red = "\033[91m"
     original = "\033[0m"
     columnWidth = 6
-    rowWidth = 6             #the size of each cell vertically and horizontally
+    rowWidth = 3             #the size of each cell vertically and horizontally
 
     print("\n")
-    print(" " * 9 + "XXX")   #the crane
+    if craneParkLocation == "source":
+        print(" " * 6 + f"{green}XXX{original}")   #the crane
+    elif craneParkLocation == "target":
+        print(" " * 6 + f"{red}XXX{original}")
+    else:
+        print(" " * 6 + "XXX")
 
     for row in range(8, 0, -1): #going from the top of the ship downward
         if row in (8, 1):
@@ -38,7 +43,7 @@ def containersVisualization(shipGrid, source = None, target = None, craneParkLoc
         else:
             rowNumber = "  "
         
-        rows = f"{rowNumber}    "
+        rows = f"{rowNumber}".ljust(rowWidth)
 
         for column in range(1, 13):
             container = shipGrid[row - 1][column - 1]
@@ -58,7 +63,6 @@ def containersVisualization(shipGrid, source = None, target = None, craneParkLoc
             rows += info.rjust(columnWidth)
         
         print(rows)
-    print("\n")
     #the column headers
     columnHeader = ""
     for column in range(1, 13):
@@ -68,10 +72,6 @@ def containersVisualization(shipGrid, source = None, target = None, craneParkLoc
             columnHeader += "  ".rjust(columnWidth)
     
     print(" " * rowWidth + columnHeader)
-    if craneParkLocation == "source":
-        print(f"The crane starts at: {green}PARK{original}\n")
-    elif craneParkLocation == "target":
-        print(f"Move the crane back to: {red}PARK{original}\n")
     print("\n")
 
 def main():
