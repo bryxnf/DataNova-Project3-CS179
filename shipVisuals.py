@@ -58,8 +58,7 @@ def containersVisualization(shipGrid, source = None, target = None, craneParkLoc
             rows += info.rjust(columnWidth)
         
         print(rows)
-    print(" " * rowWidth + ("_" * columnWidth * 13))
-
+    print("\n")
     #the column headers
     columnHeader = ""
     for column in range(1, 13):
