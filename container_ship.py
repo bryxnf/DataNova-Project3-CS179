@@ -63,15 +63,15 @@ class ContainerShip:
             c0 = c -1
             if 0 <= r0 < MAX_ROWS and 0 <= c0 < MAX_COLS:
                 if self.grid[r0][c0] != 0:
-                    print(f"Warning: overriding container at ({r}, {c})")
+                    # silently override if container already exists
+                    pass
                 self.grid[r0][c0] = w
                 self.total_weight += w
                 if c0 < (MAX_COLS // 2):
                     self.port_weight +=w
                 else:
                     self.starboard_weight += w
-            else: 
-                print(f"Warning: invalid position ({r},{c}) ignored.")
+            # silently ignore invalid positions
 
     #to check if there is nothing above the cur container(will be used for horizontal sliding)
     def is_exposed(self,row_idx: int, col_idx: int)-> bool:
@@ -318,12 +318,10 @@ class ContainerShip:
             return False
         return self.grid_tuple() == other.grid_tuple()
     
-    #to get a clear view of the ships state
+    #basic string representation without visual formatting
     def __repr__(self):
-        rows_to_print = [" ".join(f"{val:5}" for val in row[:self.max_col]) for row in reversed(self.grid)]
-        grid_str = "\n".join(rows_to_print)
-        return (f"Ship(Port:{self.port_weight}, Starboard:{self.starboard_weight}, " f"Total:{self.total_weight}, Diff:{self.get_balance_difference()})\n{grid_str}")
-    
-    #counts how many containers were moved along a sequence of moves
+        return f"ContainerShip(Port:{self.port_weight}, Starboard:{self.starboard_weight}, Total:{self.total_weight}, Diff:{self.get_balance_difference()})"
+
+    #counts how many containers were moved along a sequence of moves.
     def count_moved_containers(self, moves: List[ContainerMove]) -> int:
         return len(moves)
