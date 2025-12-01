@@ -246,7 +246,7 @@ class ContainerShip:
     
     #this uses breadth first search exploration of reachable states (unweighted) to find the minimal |Pr-Sr|
     #its also bounded meaning if it reaches a boundary it just returns the best so far.
-    def compute_min_possible_imbalance(self, max_expansions: int = 200000) -> int:
+    def compute_min_possible_imbalance(self, max_expansions: int = 200000, threshold: Optional[float] = None) -> int:
         if self.min_possible_imbalance is not None:
             return self.min_possible_imbalance
 
@@ -269,6 +269,9 @@ class ContainerShip:
             if diff < best_diff:
                 best_diff = diff
                 if best_diff == 0:
+                    break
+                # Early exit if we found a state that meets the threshold
+                if threshold is not None and best_diff < threshold:
                     break
 
             # expand neighbors (unweighted BFS)
@@ -299,9 +302,10 @@ class ContainerShip:
         if diff < threshold:
             return True
 
-        # compute minimal possible imbalance (bounded). If minimal can't be computed fully due to bounds,
-        # this will still return the best found within the exploration limit.
-        min_diff = self.compute_min_possible_imbalance()
+        # compute minimal possible imbalance with a smaller expansion limit to avoid hanging
+        # Use a much smaller limit when called from is_goal() to keep it fast
+        # Also pass the threshold so BFS can exit early if it finds a state that meets it
+        min_diff = self.compute_min_possible_imbalance(max_expansions=5000, threshold=threshold)
         return diff == min_diff
     
     #to be able to store them into dictionaries or stored in sets
