@@ -169,7 +169,7 @@ class ContainerShip:
 
         start_pos = (row_idx + 1, col_idx + 1)
 
-        # --- scan LEFT until blocked ---
+        #scan LEFT until blocked
         c = col_idx - 1
         last_valid_left = None
 
@@ -183,7 +183,7 @@ class ContainerShip:
         if last_valid_left is not None:
             results.append((start_pos, last_valid_left, weight))
 
-        # --- scan RIGHT until blocked ---
+        #scan RIGHT until blocked
         c = col_idx + 1
         last_valid_right = None
 
@@ -323,3 +323,7 @@ class ContainerShip:
         rows_to_print = [" ".join(f"{val:5}" for val in row[:self.max_col]) for row in reversed(self.grid)]
         grid_str = "\n".join(rows_to_print)
         return (f"Ship(Port:{self.port_weight}, Starboard:{self.starboard_weight}, " f"Total:{self.total_weight}, Diff:{self.get_balance_difference()})\n{grid_str}")
+    
+    #counts how many containers were moved along a sequence of moves
+    def count_moved_containers(self, moves: List[ContainerMove]) -> int:
+        return len(moves)
