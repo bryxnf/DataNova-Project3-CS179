@@ -7,7 +7,8 @@ from heuristic import balance_heuristic
 #defines a container for each node in the Astar search tree
 PathNode = namedtuple('PathNode', ['ship_state', 'g_cost', 'move_history'])
 
-#will find minimal total crane time to reach goal balance Returns (move_history_list, total_g_cost) or (None, 0) if not found.
+#will find minimal total crane time to reach goal balance 
+#Returns (move_history_list, total_g_cost, num_moves) or (None, 0, 0) if not found.
 def a_star_search(intial_ship: ContainerShip, max_expansions: int = 100000):
     start_grid = intial_ship.grid_tuple()
     #heuristic estimate of cost from start to goal
@@ -33,11 +34,12 @@ def a_star_search(intial_ship: ContainerShip, max_expansions: int = 100000):
         g_cost = node.g_cost
 
         if ship.is_goal():
-            return node.move_history, g_cost
+            num_moves = len(node.move_history)
+            return node.move_history, g_cost, num_moves
         
         expansions += 1
         if expansions > max_expansions:
-            return None, 0
+            return None, 0, 0
         
         for new_ship, move in ship.get_valid_moves():
             #total cost to reach new node
@@ -58,7 +60,7 @@ def a_star_search(intial_ship: ContainerShip, max_expansions: int = 100000):
             heapq.heappush(pq,(new_f,counter,new_node))
             counter += 1
 
-    return None,0
+    return None, 0, 0
 
 
 

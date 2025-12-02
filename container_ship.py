@@ -14,8 +14,8 @@ class ContainerShip:
         parser = ManifestParser()
         manifest_entries = parser.parse_manifest(manifest_file)
 
-        #converts data to (row,col,weight) tuples
-        manifest_data = [(pos[0],pos[1],weight) for pos, weight, desc in manifest_entries]
+        # keep (row, col, weight, description) tuples
+        manifest_data = [(pos[0], pos[1], weight, desc) for pos, weight, desc in manifest_entries]
 
 
         #initialize grid/weights
@@ -31,6 +31,9 @@ class ContainerShip:
 
         #cache for minial possible imbalance (computed on demand)
         self.min_possible_imbalance: Optional[int] = None
+
+        #metadata grid stores description/labels (e.g., UNUSED, NAN, cargo description)
+        self.metadata = [["UNUSED" for _ in range(MAX_COLS)] for _ in range(MAX_ROWS)]
 
         #to produce the grid
         self.parse_manifest(manifest_data)
@@ -57,21 +60,22 @@ class ContainerShip:
         return None
     
     #places the data into each grid within the ship
-    def parse_manifest(self, manifest_data: List[Tuple[int, int, int]]):
-        for r, c, w in manifest_data:
+    def parse_manifest(self, manifest_data: List[Tuple[int, int, int, str]]):
+        for r, c, w, desc in manifest_data:
             r0 = r -1
             c0 = c -1
             if 0 <= r0 < MAX_ROWS and 0 <= c0 < MAX_COLS:
                 if self.grid[r0][c0] != 0:
-                    print(f"Warning: overriding container at ({r}, {c})")
+                    # silently override if container already exists
+                    pass
                 self.grid[r0][c0] = w
+                self.metadata[r0][c0] = desc if desc else ("UNUSED" if w == 0 else "")
                 self.total_weight += w
                 if c0 < (MAX_COLS // 2):
                     self.port_weight +=w
                 else:
                     self.starboard_weight += w
-            else: 
-                print(f"Warning: invalid position ({r},{c}) ignored.")
+            # silently ignore invalid positions
 
     #to check if there is nothing above the cur container(will be used for horizontal sliding)
     def is_exposed(self,row_idx: int, col_idx: int)-> bool:
@@ -104,10 +108,37 @@ class ContainerShip:
         up_from_pick = down_to_pick
         horizontal = abs(c1 - c2)
         down_to_drop = (MAX_ROWS + 1)-r2
-        up_from_drop = down_to_pick
+        up_from_drop = down_to_drop
 
         total = up_from_pick + down_to_pick + horizontal + down_to_drop + up_from_drop
         return int(total)
+    
+    #PARK position is at row 9, column 1
+    #Cost to move from PARK to a position: move horizontally to column, then down to row
+    #Note: Subtract 1 because we don't count the PARK row itself in the distance
+    def calculate_park_to_position_cost(self, position: Tuple[int, int]) -> int:
+        """Calculate cost to move crane from PARK to a position"""
+        r, c = position
+        park_col = 1
+        # Move horizontally from PARK column to target column
+        horizontal = abs(c - park_col)
+        # Move down from PARK (row 9) to target row
+        # Distance is (MAX_ROWS + 1) - r - 1 because we don't count PARK row itself
+        down_to_position = (MAX_ROWS + 1) - r - 1
+        return horizontal + down_to_position
+    
+    #Cost to move from a position back to PARK: move up to row 9, then horizontally to column 1
+    #Note: Subtract 1 because we don't count the PARK row itself in the distance
+    def calculate_position_to_park_cost(self, position: Tuple[int, int]) -> int:
+        """Calculate cost to move crane from a position back to PARK (row 9, col 1)"""
+        r, c = position
+        park_col = 1
+        # Move up from position row to PARK (row 9)
+        # Distance is (MAX_ROWS + 1) - r - 1 because we don't count PARK row itself
+        up_to_park = (MAX_ROWS + 1) - r - 1
+        # Move horizontally to PARK column (1)
+        horizontal = abs(c - park_col)
+        return up_to_park + horizontal
     
     #this will return a new ContainerShip state after moving the container at start_pos to end_pos
 
@@ -122,6 +153,7 @@ class ContainerShip:
         new_ship.max_col = self.max_col
         new_ship.original_total_weight = self.original_total_weight
         new_ship.min_possible_imbalance = None  # computed on demand
+        new_ship.metadata = [row[:] for row in self.metadata]
 
         r1,c1 = start_pos[0] - 1, start_pos[1] -1
         r2,c2 = end_pos[0] - 1, end_pos[1] -1
@@ -135,6 +167,15 @@ class ContainerShip:
         #excecutes the move
         new_ship.grid[r1][c1] = 0
         new_ship.grid[r2][c2] = weight
+
+        # Move metadata (container description or NAN marker) along with the container
+        start_meta = new_ship.metadata[r1][c1]
+        new_ship.metadata[r1][c1] = "UNUSED"  # Source becomes empty
+        # Copy metadata (including NAN markers) to destination, default to UNUSED if None
+        if start_meta is not None:
+            new_ship.metadata[r2][c2] = start_meta
+        else:
+            new_ship.metadata[r2][c2] = "UNUSED"
 
         left_half = (MAX_COLS // 2)  # columns 0..left_half-1 are port
         start_is_port = (c1 < left_half)
@@ -167,24 +208,25 @@ class ContainerShip:
         if not self.is_exposed(row_idx, col_idx):
             return results
 
-        start_col = col_idx
-        start_row_1 = row_idx + 1
+        start_pos = (row_idx + 1, col_idx + 1)
 
-        # scan left
-        for c in range(start_col - 1, -1, -1):
-            # path cell must be empty
+        #scan LEFT until blocked - add ALL valid positions, not just the furthest
+        c = col_idx - 1
+        while c >= 0:
+            if self.grid[row_idx][c] != 0:
+                break  # blocked
+            if self.is_supported(row_idx, c):
+                results.append((start_pos, (row_idx + 1, c + 1), weight))
+            c -= 1
+
+        #scan RIGHT until blocked - add ALL valid positions, not just the furthest
+        c = col_idx + 1
+        while c < self.max_col:
             if self.grid[row_idx][c] != 0:
                 break
-            # check support for placing here
             if self.is_supported(row_idx, c):
-                results.append(((start_row_1, start_col + 1), (start_row_1, c + 1), weight))
-
-        # scan right
-        for c in range(start_col + 1, self.max_col):
-            if self.grid[row_idx][c] != 0:
-                break
-            if self.is_supported(row_idx, c):
-                results.append(((start_row_1, start_col + 1), (start_row_1, c + 1), weight))
+                results.append((start_pos, (row_idx + 1, c + 1), weight))
+            c += 1
 
         return results
     
@@ -228,14 +270,16 @@ class ContainerShip:
                     if self.grid[er_idx][ec_idx] != 0:
                         continue
                     new_ship = self.perform_move(start_pos, end_pos, weight)
-                    move_obj = ContainerMove(start_pos, end_pos, weight, 0)
+                    # Horizontal slides cost the horizontal distance (1 minute per column)
+                    slide_cost = abs(start_pos[1] - end_pos[1])
+                    move_obj = ContainerMove(start_pos, end_pos, weight, slide_cost)
                     moves.append((new_ship, move_obj))
 
         return moves
     
     #this uses breadth first search exploration of reachable states (unweighted) to find the minimal |Pr-Sr|
     #its also bounded meaning if it reaches a boundary it just returns the best so far.
-    def compute_min_possible_imbalance(self, max_expansions: int = 200000) -> int:
+    def compute_min_possible_imbalance(self, max_expansions: int = 200000, threshold: Optional[float] = None) -> int:
         if self.min_possible_imbalance is not None:
             return self.min_possible_imbalance
 
@@ -258,6 +302,9 @@ class ContainerShip:
             if diff < best_diff:
                 best_diff = diff
                 if best_diff == 0:
+                    break
+                # Early exit if we found a state that meets the threshold
+                if threshold is not None and best_diff < threshold:
                     break
 
             # expand neighbors (unweighted BFS)
@@ -288,34 +335,12 @@ class ContainerShip:
         if diff < threshold:
             return True
 
-        # compute minimal possible imbalance (bounded). If minimal can't be computed fully due to bounds,
-        # this will still return the best found within the exploration limit.
-        min_diff = self.compute_min_possible_imbalance()
+        # compute minimal possible imbalance with a smaller expansion limit to avoid hanging
+        # Use a much smaller limit when called from is_goal() to keep it fast
+        # Also pass the threshold so BFS can exit early if it finds a state that meets it
+        min_diff = self.compute_min_possible_imbalance(max_expansions=5000, threshold=threshold)
         return diff == min_diff
     
-    #to be able to store them into dictionaries or stored in sets
-    def __hash__(self):
-        return hash(self.grid_tuple())
-    
-    #to know when two containers are equal
-    def __eq__(self, other):
-        if not isinstance(other, ContainerShip):
-            return False
-        return self.grid_tuple() == other.grid_tuple()
-    
-    #to get a clear view of the ships state
+    #basic string representation without visual formatting
     def __repr__(self):
-        rows_to_print = [" ".join(f"{val:5}" for val in row[:self.max_col]) for row in reversed(self.grid)]
-        grid_str = "\n".join(rows_to_print)
-        return (f"Ship(Port:{self.port_weight}, Starboard:{self.starboard_weight}, " f"Total:{self.total_weight}, Diff:{self.get_balance_difference()})\n{grid_str}")
-
-    
-
-
-
-
-        
-
-
-    
-        
+        return f"ContainerShip(Port:{self.port_weight}, Starboard:{self.starboard_weight}, Total:{self.total_weight}, Diff:{self.get_balance_difference()})"
