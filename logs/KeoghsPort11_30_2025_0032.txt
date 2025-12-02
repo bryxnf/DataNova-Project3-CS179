@@ -1,0 +1,4 @@
+11 30 2025: 00:32 Program was started.
+11 30 2025: 00:32 User entered path: manifests\testManifest.txt
+11 30 2025: 00:32 Manifest testManifest.txt is opened, there are 11 containers on the ship.
+11 30 2025: 00:32 Program was shut down.
