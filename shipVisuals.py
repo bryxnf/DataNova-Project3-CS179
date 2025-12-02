@@ -27,21 +27,22 @@ def ship_to_visualization_grid(ship):
     """
     Converts a ContainerShip object to the grid format expected by containersVisualization.
     Returns a grid where:
-    - Empty cells (0) are represented as "UNUSED"
-    - Containers are represented as dicts with "weight" key
+    - Cells use the manifest description (e.g., "NAN", "UNUSED") when weight is 0
+    - Containers are represented as dicts with "weight" and "info" keys
     """
     if not isinstance(ship, ContainerShip):
         raise TypeError("ship must be a ContainerShip object")
     
-    shipGrid = [["NAN" for _ in range(12)] for _ in range(8)]
+    shipGrid = [["UNUSED" for _ in range(12)] for _ in range(8)]
     
     for r in range(8):
         for c in range(12):
             weight = ship.grid[r][c]
+            meta = ship.metadata[r][c] if hasattr(ship, "metadata") else "UNUSED"
             if weight == 0:
-                shipGrid[r][c] = "UNUSED"
+                shipGrid[r][c] = meta if meta else "UNUSED"
             else:
-                shipGrid[r][c] = {"weight": weight}
+                shipGrid[r][c] = {"weight": weight, "info": meta if meta else ""}
     
     return shipGrid
 
@@ -62,10 +63,15 @@ def containersVisualization(ship_or_grid, source = None, target = None, cranePar
     red = "\033[91m"
     original = "\033[0m"
     columnWidth = 6
-    rowWidth = 6             #the size of each cell vertically and horizontally
+    rowWidth = 3             #the size of each cell vertically and horizontally
 
     print("\n")
-    print(" " * 9 + "XXX")   #the crane
+    if craneParkLocation == "source":
+        print(" " * 6 + f"{green}XXX{original}")   #the crane
+    elif craneParkLocation == "target":
+        print(" " * 6 + f"{red}XXX{original}")
+    else:
+        print(" " * 6 + "XXX")
 
     for row in range(8, 0, -1): #going from the top of the ship downward
         if row in (8, 1):
@@ -73,7 +79,7 @@ def containersVisualization(ship_or_grid, source = None, target = None, cranePar
         else:
             rowNumber = "  "
         
-        rows = f"{rowNumber}    "
+        rows = f"{rowNumber}".ljust(rowWidth)
 
         for column in range(1, 13):
             container = shipGrid[row - 1][column - 1]
@@ -85,15 +91,15 @@ def containersVisualization(ship_or_grid, source = None, target = None, cranePar
             else:
                 info = str(container["weight"])
 
+            info_padded = info.rjust(columnWidth)
             if source == (row, column):
-                info = f"{green}{info}{original}"
+                info_padded = f"{green}{info_padded}{original}"
             elif target == (row, column):
-                info = f"{red}{info}{original}"
-
-            rows += info.rjust(columnWidth)
+                info_padded = f"{red}{info_padded}{original}"
+            rows += info_padded
         
         print(rows)
-    print("\n")
+
     #the column headers
     columnHeader = ""
     for column in range(1, 13):
@@ -103,13 +109,8 @@ def containersVisualization(ship_or_grid, source = None, target = None, cranePar
             columnHeader += "  ".rjust(columnWidth)
     
     print(" " * rowWidth + columnHeader)
-    if craneParkLocation == "source":
-        print(f"The crane starts at: {green}PARK{original}\n")
-    elif craneParkLocation == "target":
-        print(f"Move the crane back to: {red}PARK{original}\n")
     print("\n")
 
-#remove everything below this line before integrating into the main codebase
 def test_format_move_log():
     """Test the format_move_log function with various inputs"""
     print("=== Testing format_move_log ===\n")

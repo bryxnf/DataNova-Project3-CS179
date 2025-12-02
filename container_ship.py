@@ -14,8 +14,8 @@ class ContainerShip:
         parser = ManifestParser()
         manifest_entries = parser.parse_manifest(manifest_file)
 
-        #converts data to (row,col,weight) tuples
-        manifest_data = [(pos[0],pos[1],weight) for pos, weight, desc in manifest_entries]
+        # keep (row, col, weight, description) tuples
+        manifest_data = [(pos[0], pos[1], weight, desc) for pos, weight, desc in manifest_entries]
 
 
         #initialize grid/weights
@@ -31,6 +31,9 @@ class ContainerShip:
 
         #cache for minial possible imbalance (computed on demand)
         self.min_possible_imbalance: Optional[int] = None
+
+        #metadata grid stores description/labels (e.g., UNUSED, NAN, cargo description)
+        self.metadata = [["UNUSED" for _ in range(MAX_COLS)] for _ in range(MAX_ROWS)]
 
         #to produce the grid
         self.parse_manifest(manifest_data)
@@ -57,8 +60,8 @@ class ContainerShip:
         return None
     
     #places the data into each grid within the ship
-    def parse_manifest(self, manifest_data: List[Tuple[int, int, int]]):
-        for r, c, w in manifest_data:
+    def parse_manifest(self, manifest_data: List[Tuple[int, int, int, str]]):
+        for r, c, w, desc in manifest_data:
             r0 = r -1
             c0 = c -1
             if 0 <= r0 < MAX_ROWS and 0 <= c0 < MAX_COLS:
@@ -66,6 +69,7 @@ class ContainerShip:
                     # silently override if container already exists
                     pass
                 self.grid[r0][c0] = w
+                self.metadata[r0][c0] = desc if desc else ("UNUSED" if w == 0 else "")
                 self.total_weight += w
                 if c0 < (MAX_COLS // 2):
                     self.port_weight +=w
@@ -122,6 +126,7 @@ class ContainerShip:
         new_ship.max_col = self.max_col
         new_ship.original_total_weight = self.original_total_weight
         new_ship.min_possible_imbalance = None  # computed on demand
+        new_ship.metadata = [row[:] for row in self.metadata]
 
         r1,c1 = start_pos[0] - 1, start_pos[1] -1
         r2,c2 = end_pos[0] - 1, end_pos[1] -1
@@ -135,6 +140,15 @@ class ContainerShip:
         #excecutes the move
         new_ship.grid[r1][c1] = 0
         new_ship.grid[r2][c2] = weight
+
+        # Move metadata (container description or NAN marker) along with the container
+        start_meta = new_ship.metadata[r1][c1]
+        new_ship.metadata[r1][c1] = "UNUSED"  # Source becomes empty
+        # Copy metadata (including NAN markers) to destination, default to UNUSED if None
+        if start_meta is not None:
+            new_ship.metadata[r2][c2] = start_meta
+        else:
+            new_ship.metadata[r2][c2] = "UNUSED"
 
         left_half = (MAX_COLS // 2)  # columns 0..left_half-1 are port
         start_is_port = (c1 < left_half)
