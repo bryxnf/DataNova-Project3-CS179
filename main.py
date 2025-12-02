@@ -7,7 +7,7 @@ def main():
     # ------------------------------------------------------------
     # 1. LOAD MANIFEST
     # ------------------------------------------------------------
-    manifest_path = "manifests/ShipCase4.txt"  # Change this to your manifest file
+    manifest_path = "manifests/HMM_Algeciras.txt"  # Change this to your manifest file
     if not os.path.exists(manifest_path):
         print(f"ERROR: Manifest file not found: {manifest_path}")
         return
@@ -33,7 +33,23 @@ def main():
         print("A* could not find a solution.")
         return
     
-    print(f"A* found a solution with {num_moves} moves and total crane cost: {cost} minutes")
+    # Add park positioning costs: from PARK to first container, and from last container back to PARK
+    park_to_first_cost = 0
+    last_to_park_cost = 0
+    if move_history:
+        # Cost to move from PARK to the first container position
+        park_to_first_cost = ship.calculate_park_to_position_cost(move_history[0].start_pos)
+        # Cost to move from the last container position back to PARK
+        last_to_park_cost = ship.calculate_position_to_park_cost(move_history[-1].end_pos)
+    
+    total_cost_with_park = cost + park_to_first_cost + last_to_park_cost
+    # Total moves includes container moves + 2 park movements (to first container and back to park)
+    total_moves_with_park = num_moves + 2
+    print(f"A* found a solution with {total_moves_with_park} moves ({num_moves} container moves + 2 park movements)")
+    print(f"  Container move costs: {cost} minutes")
+    print(f"  PARK to first container: {park_to_first_cost} minutes")
+    print(f"  Last container to PARK: {last_to_park_cost} minutes")
+    print(f"  Total crane cost: {total_cost_with_park} minutes")
     
     # ------------------------------------------------------------
     # 4. EXECUTE MOVES STEP-BY-STEP
@@ -78,8 +94,8 @@ def main():
     print("=== ALL MOVES COMPLETED ===")
     print(f"Final balance difference: {current_ship.get_balance_difference()}")
     print(f"Goal reached: {current_ship.is_goal()}")
-    print(f"Total moves: {num_moves}")
-    print(f"Total cost: {cost} minutes")
+    print(f"Total moves: {total_moves_with_park} ({num_moves} container moves + 2 park movements)")
+    print(f"Total cost: {total_cost_with_park} minutes")
 
 if __name__ == "__main__":
     main()

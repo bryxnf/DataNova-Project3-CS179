@@ -113,6 +113,33 @@ class ContainerShip:
         total = up_from_pick + down_to_pick + horizontal + down_to_drop + up_from_drop
         return int(total)
     
+    #PARK position is at row 9, column 1
+    #Cost to move from PARK to a position: move horizontally to column, then down to row
+    #Note: Subtract 1 because we don't count the PARK row itself in the distance
+    def calculate_park_to_position_cost(self, position: Tuple[int, int]) -> int:
+        """Calculate cost to move crane from PARK to a position"""
+        r, c = position
+        park_col = 1
+        # Move horizontally from PARK column to target column
+        horizontal = abs(c - park_col)
+        # Move down from PARK (row 9) to target row
+        # Distance is (MAX_ROWS + 1) - r - 1 because we don't count PARK row itself
+        down_to_position = (MAX_ROWS + 1) - r - 1
+        return horizontal + down_to_position
+    
+    #Cost to move from a position back to PARK: move up to row 9, then horizontally to column 1
+    #Note: Subtract 1 because we don't count the PARK row itself in the distance
+    def calculate_position_to_park_cost(self, position: Tuple[int, int]) -> int:
+        """Calculate cost to move crane from a position back to PARK (row 9, col 1)"""
+        r, c = position
+        park_col = 1
+        # Move up from position row to PARK (row 9)
+        # Distance is (MAX_ROWS + 1) - r - 1 because we don't count PARK row itself
+        up_to_park = (MAX_ROWS + 1) - r - 1
+        # Move horizontally to PARK column (1)
+        horizontal = abs(c - park_col)
+        return up_to_park + horizontal
+    
     #this will return a new ContainerShip state after moving the container at start_pos to end_pos
 
     def perform_move(self,start_pos: Tuple[int, int], end_pos: Tuple[int,int], weight: int)-> 'ContainerShip':
@@ -183,33 +210,23 @@ class ContainerShip:
 
         start_pos = (row_idx + 1, col_idx + 1)
 
-        #scan LEFT until blocked
+        #scan LEFT until blocked - add ALL valid positions, not just the furthest
         c = col_idx - 1
-        last_valid_left = None
-
         while c >= 0:
             if self.grid[row_idx][c] != 0:
                 break  # blocked
             if self.is_supported(row_idx, c):
-                last_valid_left = (row_idx + 1, c + 1)
+                results.append((start_pos, (row_idx + 1, c + 1), weight))
             c -= 1
 
-        if last_valid_left is not None:
-            results.append((start_pos, last_valid_left, weight))
-
-        #scan RIGHT until blocked
+        #scan RIGHT until blocked - add ALL valid positions, not just the furthest
         c = col_idx + 1
-        last_valid_right = None
-
         while c < self.max_col:
             if self.grid[row_idx][c] != 0:
                 break
             if self.is_supported(row_idx, c):
-                last_valid_right = (row_idx + 1, c + 1)
+                results.append((start_pos, (row_idx + 1, c + 1), weight))
             c += 1
-
-        if last_valid_right is not None:
-            results.append((start_pos, last_valid_right, weight))
 
         return results
     
@@ -253,7 +270,9 @@ class ContainerShip:
                     if self.grid[er_idx][ec_idx] != 0:
                         continue
                     new_ship = self.perform_move(start_pos, end_pos, weight)
-                    move_obj = ContainerMove(start_pos, end_pos, weight, 0)
+                    # Horizontal slides cost the horizontal distance (1 minute per column)
+                    slide_cost = abs(start_pos[1] - end_pos[1])
+                    move_obj = ContainerMove(start_pos, end_pos, weight, slide_cost)
                     moves.append((new_ship, move_obj))
 
         return moves
@@ -322,20 +341,6 @@ class ContainerShip:
         min_diff = self.compute_min_possible_imbalance(max_expansions=5000, threshold=threshold)
         return diff == min_diff
     
-    #to be able to store them into dictionaries or stored in sets
-    def __hash__(self):
-        return hash(self.grid_tuple())
-    
-    #to know when two containers are equal
-    def __eq__(self, other):
-        if not isinstance(other, ContainerShip):
-            return False
-        return self.grid_tuple() == other.grid_tuple()
-    
     #basic string representation without visual formatting
     def __repr__(self):
         return f"ContainerShip(Port:{self.port_weight}, Starboard:{self.starboard_weight}, Total:{self.total_weight}, Diff:{self.get_balance_difference()})"
-
-    #counts how many containers were moved along a sequence of moves.
-    def count_moved_containers(self, moves: List[ContainerMove]) -> int:
-        return len(moves)
