@@ -27,7 +27,7 @@ def main():
     # 3. RUN A* SEARCH
     # ------------------------------------------------------------
     print("\n=== RUNNING A* SEARCH ===")
-    move_history, cost, num_moves = a_star_search(ship, max_expansions=5000)
+    move_history, cost, num_moves = a_star_search(ship, max_expansions=50000)
     
     if move_history is None:
         print("A* could not find a solution.")

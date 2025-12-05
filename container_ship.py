@@ -333,7 +333,7 @@ class ContainerShip:
         # compute minimal possible imbalance with a smaller expansion limit to avoid hanging
         # Use a much smaller limit when called from is_goal() to keep it fast
         # Also pass the threshold so BFS can exit early if it finds a state that meets it
-        min_diff = self.compute_min_possible_imbalance(max_expansions=5000, threshold=threshold)
+        min_diff = self.compute_min_possible_imbalance(max_expansions=1000, threshold=threshold)
         return diff == min_diff
     
     #basic string representation without visual formatting
