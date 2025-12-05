@@ -7,7 +7,7 @@ def main():
     # ------------------------------------------------------------
     # 1. LOAD MANIFEST
     # ------------------------------------------------------------
-    manifest_path = "manifests/HMM_Algeciras.txt"  # Change this to your manifest file
+    manifest_path = "manifests/ShipCase5.txt"  # Change this to your manifest file
     if not os.path.exists(manifest_path):
         print(f"ERROR: Manifest file not found: {manifest_path}")
         return

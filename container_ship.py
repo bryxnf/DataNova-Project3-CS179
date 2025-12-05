@@ -75,7 +75,7 @@ class ContainerShip:
                     self.port_weight +=w
                 else:
                     self.starboard_weight += w
-            # silently ignore invalid positions
+            #ignore invalid positions
 
     #to check if there is nothing above the cur container(will be used for horizontal sliding)
     def is_exposed(self,row_idx: int, col_idx: int)-> bool:
@@ -103,15 +103,10 @@ class ContainerShip:
         r1, c1 = start_pos
         r2, c2 = end_pos
 
-        #vertical travels are (max_rows + 1 - row)
-        down_to_pick = (MAX_ROWS +1) -r1
-        up_from_pick = down_to_pick
+        # Cost is Manhattan distance: horizontal + vertical change
         horizontal = abs(c1 - c2)
-        down_to_drop = (MAX_ROWS + 1)-r2
-        up_from_drop = down_to_drop
-
-        total = up_from_pick + down_to_pick + horizontal + down_to_drop + up_from_drop
-        return int(total)
+        vertical = abs(r1 - r2)
+        return horizontal + vertical
     
     #PARK position is at row 9, column 1
     #Cost to move from PARK to a position: move horizontally to column, then down to row
