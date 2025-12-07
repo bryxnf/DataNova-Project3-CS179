@@ -75,7 +75,7 @@ class ContainerShip:
                     self.port_weight +=w
                 else:
                     self.starboard_weight += w
-            # silently ignore invalid positions
+            #ignore invalid positions
 
     #to check if there is nothing above the cur container(will be used for horizontal sliding)
     def is_exposed(self,row_idx: int, col_idx: int)-> bool:
@@ -103,15 +103,34 @@ class ContainerShip:
         r1, c1 = start_pos
         r2, c2 = end_pos
 
-        #vertical travels are (max_rows + 1 - row)
-        down_to_pick = (MAX_ROWS +1) -r1
-        up_from_pick = down_to_pick
-        horizontal = abs(c1 - c2)
-        down_to_drop = (MAX_ROWS + 1)-r2
-        up_from_drop = down_to_drop
+        # Convert to 0-indexed
+        r1_idx, c1_idx = r1 - 1, c1 - 1
+        r2_idx, c2_idx = r2 - 1, c2 - 1
 
-        total = up_from_pick + down_to_pick + horizontal + down_to_drop + up_from_drop
-        return int(total)
+        # Find the highest obstacle in the path (including start and end columns)
+        min_col = min(c1_idx, c2_idx)
+        max_col = max(c1_idx, c2_idx)
+        
+        max_height = 0
+        for col in range(min_col, max_col + 1):
+            # Find the top occupied row in this column
+            for row in range(MAX_ROWS - 1, -1, -1):
+                if self.grid[row][col] != 0:
+                    max_height = max(max_height, row + 1)  # +1 to convert to 1-indexed height
+                    break
+        
+        # Crane must go up to clear the tallest obstacle + 1
+        clear_height = max_height + 1
+        
+        # Calculate costs:
+        # 1. Up from start position to clear height
+        up_cost = clear_height - r1
+        # 2. Horizontal movement
+        horizontal = abs(c2 - c1)
+        # 3. Down from clear height to end position
+        down_cost = clear_height - r2
+        
+        return up_cost + horizontal + down_cost
     
     #PARK position is at row 9, column 1
     #Cost to move from PARK to a position: move horizontally to column, then down to row
@@ -338,7 +357,7 @@ class ContainerShip:
         # compute minimal possible imbalance with a smaller expansion limit to avoid hanging
         # Use a much smaller limit when called from is_goal() to keep it fast
         # Also pass the threshold so BFS can exit early if it finds a state that meets it
-        min_diff = self.compute_min_possible_imbalance(max_expansions=5000, threshold=threshold)
+        min_diff = self.compute_min_possible_imbalance(max_expansions=1000, threshold=threshold)
         return diff == min_diff
     
     #basic string representation without visual formatting
