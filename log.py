@@ -26,8 +26,8 @@ class Logger:
         print(message)
 
     # Filename example: KeoghsPort10_18_2023_0204.txt
-    def writeToFile(self) -> str:
-        filename = f"KeoghsPort{time.strftime('%m_%d_%Y_%H%M')}.txt"
+    def writeToFile(self, shipName) -> str:
+        filename = f"{shipName}{time.strftime('%m_%d_%Y_%H%M')}.txt"
         full_path = os.path.join(self.logsDir, filename)
 
         with open(full_path, "w", encoding="utf-8") as f:
@@ -36,9 +36,9 @@ class Logger:
 
         return full_path
     
-    def progShutDown(self) -> None:
+    def progShutDown(self, shipName) -> None:
         self.log("Program was shut down.")
-        logPath = self.writeToFile()
+        logPath = self.writeToFile(shipName)
 
         self.logRaw(f"\nSession log written to: {logPath}")
         return None

@@ -22,7 +22,7 @@ def main():
     
     if not filename:
         logger.log("Path provided was not found.")
-        logger.progShutDown()
+        logger.progShutDown("UNKNOWN_SHIP")
         sys.exit(1)
     
     if os.path.isabs(filename):
@@ -33,8 +33,10 @@ def main():
 
     if not os.path.exists(filePath):
         logger.log(f"ERROR: File does not exist: {filePath}")
-        logger.progShutDown()
+        logger.progShutDown("UNKNOWN_SHIP")
         sys.exit(1)
+
+    shipName = os.path.basename(filePath).replace(".txt", "")
 
     parser = ManifestParser()
     parserFile = parser.parse_manifest(filePath)
@@ -54,12 +56,18 @@ def main():
     # else we do this
     logger.log(f"Balance solution found, it will require {totalBalMove + 2} moves/{totBalMin} minutes.")
 
-    print(moveHistory)
+    for i, move in enumerate(moveHistory, 1):   
+        startPos, endPos, _, _ = move
+        startFmt = f"[{startPos[0]:02d}, {startPos[1]:02d}]"
+        endFmt = f"[{endPos[0]:02d}, {endPos[1]:02d}]"
 
-    # for i, move in enumerate(moveHistory, 1):   
-    #     print(f"Current move: {move}")
+        logger.log(f"{startFmt} was moved to {endFmt}")
+        print("If you want to record a note about this move, type it now. Otherwise, press \"Enter\" to continue:")
+        description = input().strip()
+        if description:
+            logger.log(description)
 
-    logger.progShutDown()
+    logger.progShutDown(shipName)
 
 
 if __name__ == "__main__":
