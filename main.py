@@ -66,6 +66,8 @@ def main():
         description = input().strip()
         if description:
             logger.log(description)
+    
+    logger.log(f"Finished a Cycle. Manifest HMMAlgecirasOUTBOUND.txt was written to desktop, and a reminder pop-up to operator to send file was displayed.")
 
     logger.progShutDown(shipName)
 
