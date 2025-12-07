@@ -18,8 +18,8 @@ def loadManifest(shipCase):
             else:
                 shipGrid[rows - 1][columns - 1] = {
                     "weight": tareInfo,
-                    "info": itemInfo}
-                
+                    "info": itemInfo}      
+                 
     return shipGrid
 
 def containersVisualization(shipGrid, source = None, target = None, craneParkLocation = None):   #can call in the source and the target for each turn using visualization
@@ -42,7 +42,6 @@ def containersVisualization(shipGrid, source = None, target = None, craneParkLoc
             rowNumber = f"{row:02d}"
         else:
             rowNumber = "  "
-        
         rows = f"{rowNumber}".ljust(rowWidth)
 
         for column in range(1, 13):
@@ -70,13 +69,15 @@ def containersVisualization(shipGrid, source = None, target = None, craneParkLoc
             columnHeader += f"{column:02d}".rjust(columnWidth)
         else:
             columnHeader += "  ".rjust(columnWidth)
-    
+            
     print(" " * rowWidth + columnHeader)
     print("\n")
 
 def main():
-    grid = loadManifest("testFiles/ShipCase5.txt")
-    containersVisualization(grid, None, (2, 5), "source")
+    grid = loadManifest("manifests/ShipCase5.txt")
+    containersVisualization(grid, None, (1, 5), "source")
+    containersVisualization(grid, (1, 5), (1, 7))
+    containersVisualization(grid, (1, 7), None, "target")
 
 if __name__ == "__main__":
     main()
