@@ -1,6 +1,9 @@
 import os
 import sys
 from manifestParser import ManifestParser
+from container_ship import ContainerShip
+from astar import a_star_search
+from shipVisuals import format_move_log, containersVisualization
 from log import Logger
 import time
 
@@ -19,10 +22,7 @@ def main():
     
     if not filename:
         logger.log("Path provided was not found.")
-        logger.log("Program was shut down.")
-        logPath = logger.writeToFile()
-
-        logger.logRaw(f"\nSession log written to: {logPath}")
+        logger.progShutDown()
         sys.exit(1)
     
     if os.path.isabs(filename):
@@ -33,10 +33,7 @@ def main():
 
     if not os.path.exists(filePath):
         logger.log(f"ERROR: File does not exist: {filePath}")
-        logger.log("Program was shut down.")
-        logPath = logger.writeToFile()
-
-        logger.logRaw(f"\nSession log written to: {logPath}")
+        logger.progShutDown()
         sys.exit(1)
 
     parser = ManifestParser()
@@ -45,20 +42,24 @@ def main():
     totalContainers = len(parserFile)
     logger.log(f"Manifest {os.path.basename(filePath)} is opened, there are {totalContainers} containers on the ship.")
 
-    for entry in parserFile:
-        print(format_entry(entry))
+    ship = ContainerShip(filePath)
+    moveHistory, totBalMin, totalBalMove = a_star_search(ship, max_expansions=50000)
 
-    totBalMin = 34
-    totalBalMove = 9
+    if moveHistory is None: # THINK ABOUT THIS LATER
+        logger.log("A* could not find a solution.")
+        return
+
     # If the ship balance was not found
     logger.log(f"Balance solution was not found for {os.path.basename(filePath)}")
     # else we do this
-    logger.log(f"Balance solution found, it will require {totalBalMove} moves/{totBalMin} minutes.")
+    logger.log(f"Balance solution found, it will require {totalBalMove + 2} moves/{totBalMin} minutes.")
 
-    logger.log("Program was shut down.")
-    logPath = logger.writeToFile()
+    print(moveHistory)
 
-    logger.logRaw(f"\nSession log written to: {logPath}")
+    # for i, move in enumerate(moveHistory, 1):   
+    #     print(f"Current move: {move}")
+
+    logger.progShutDown()
 
 
 if __name__ == "__main__":
