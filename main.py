@@ -3,7 +3,7 @@ import sys
 from manifestParser import ManifestParser
 from container_ship import ContainerShip
 from astar import a_star_search
-from shipVisuals import format_move_log, containersVisualization
+from shipVisuals import loadManifest, containersVisualization
 from log import Logger
 import time
 
@@ -48,20 +48,48 @@ def main():
     moveHistory, totBalMin, totalBalMove = a_star_search(ship, max_expansions=50000)
 
     if moveHistory is None: # THINK ABOUT THIS LATER
-        logger.log("A* could not find a solution.")
+        logger.log("A* could not find a solution because node expansion was too long or there was an error in the manifest file")
         return
 
     # If the ship balance was not found
-    logger.log(f"Balance solution was not found for {os.path.basename(filePath)}")
+    # logger.log(f"Balance solution was not found for {os.path.basename(filePath)}")
     # else we do this
-    logger.log(f"Balance solution found, it will require {totalBalMove + 2} moves/{totBalMin} minutes.")
+    logger.log(f"Balance solution found, it will require {totalBalMove} moves/{totBalMin} minutes.")
+
+    visualGrid = loadManifest(filePath)
+    containersVisualization(visualGrid, craneParkLocation="source")
+
+    resp = input("Press Enter to begin the move sequence, or type anything to cancel: ").strip()
+
+    # If user pressed anything but enter then we end the program
+    if resp != "":
+        print("Move sequence cancelled.")
+        return 
 
     totalMoves = len(moveHistory)
+    currShip = ship
 
     for i, move in enumerate(moveHistory, 1):
         startPos, endPos, containerWeight, _ = move
-        # Fix this visualization part
-        # currShip = ship.perform_move(startPos,endPos, containerWeight)
+        currShip = currShip.perform_move(startPos, endPos, containerWeight)
+
+        sr, sc = startPos
+        tr, tc = endPos
+
+        cell = visualGrid[sr - 1][sc - 1]
+
+        if isinstance(cell, dict):
+            container_dict = cell
+        else:
+            container_dict = {"weight": containerWeight, "info": ""}
+
+        visualGrid[sr - 1][sc - 1] = "UNUSED"
+        visualGrid[tr - 1][tc - 1] = container_dict
+        containersVisualization(visualGrid, source=startPos, target=endPos, craneParkLocation="target" if i == totalMoves else None)
+
+
+        # Fix this visualization part        
+        # currShip = currShip.perform_move(startPos,endPos, containerWeight)
         # containersVisualization(currShip, source=startPos, target=endPos, craneParkLocation="target" if i == totalMoves else None)
         startFmt = f"[{startPos[0]:02d}, {startPos[1]:02d}]"
         endFmt = f"[{endPos[0]:02d}, {endPos[1]:02d}]"
