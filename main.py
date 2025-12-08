@@ -46,7 +46,12 @@ def main():
         parser = ManifestParser()
         parserFile = parser.parse_manifest(filePath)
 
-        totalContainers = len(parserFile)
+        totalContainers = 0
+
+        for (pos, weight, desc) in parserFile:
+            if desc != "NAN" and desc != "UNUSED" and weight > 0:
+                totalContainers += 1
+
         logger.log(f"Manifest {os.path.basename(filePath)} is opened, there are {totalContainers} containers on the ship.")
 
         ship = ContainerShip(filePath)
