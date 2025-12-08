@@ -26,10 +26,12 @@ def main():
         filename = input("Enter the path of the Ship file: ").strip()
         logger.log(f"User entered path: {filename}")
         
+        # when no filename provided -> reloop instead of exiting
         if not filename:
             logger.log("Path provided was not found.")
             logger.progShutDown("UNKNOWN_SHIP")
-            sys.exit(1)
+            endTheEntireProg = input('Press \"Enter\" to continue the program, or type any key to quit: ').strip()
+            continue
         
         if os.path.isabs(filename):
             filePath = filename
@@ -37,10 +39,12 @@ def main():
             baseDir = os.path.dirname(os.path.abspath(__file__))
             filePath = os.path.join(baseDir, filename)
 
+        # when file does not exist -> reloop instead of exiting
         if not os.path.exists(filePath):
             logger.log(f"ERROR: File does not exist: {filePath}")
             logger.progShutDown("UNKNOWN_SHIP")
-            sys.exit(1)
+            endTheEntireProg = input('Press "Enter" to continue the program, or type any key to quit: ').strip()
+            continue
 
         shipName = os.path.basename(filePath).replace(".txt", "")
 
@@ -53,10 +57,14 @@ def main():
         ship = ContainerShip(filePath)
         moveHistory, totBalMin, totalBalMove = a_star_search(ship, max_expansions=50000)
 
+        # when no balance solution -> reloop instead of exiting
         if moveHistory is None:
             logger.log(f"Balance solution was not found for {os.path.basename(filePath)}")
             logger.log("A* search stopped: search space grew too large or the manifest data may contain an error.")
-            return
+            logger.progShutDown(shipName)
+            endTheEntireProg = input('Press \"Enter\" to continue the program, or type any key to quit: ').strip()
+            continue
+
         parkToFirstCost = 0
         lastToParkCost = 0
         if moveHistory:
@@ -74,7 +82,12 @@ def main():
         # If user pressed anything but enter then we end the program
         if resp != "":
             print("Move sequence cancelled.")
-            return 
+            logger.log("Move sequence was cancelled by the operator before starting.")
+            logger.progShutDown(shipName)
+
+            endTheEntireProg = input('Press \"Enter\" to continue the program, or type any key to quit: ').strip()
+
+            continue
 
         visualGrid = loadManifest(filePath)
         currShip = ship
@@ -132,6 +145,8 @@ def main():
             logger.log(f"ERROR: Failed to save manifest to desktop: {e}")
             logger.logRaw(f"Error details: {str(e)}")
             logger.progShutDown(shipName)
+            endTheEntireProg = input('Press \"Enter\" to continue the program, or type any key to quit: ').strip()
+            continue
 
         logger.progShutDown(shipName)
         
