@@ -7,11 +7,6 @@ from shipVisuals import loadManifest, containersVisualization
 from manifestExporter import save_manifest_to_desktop
 from log import Logger
 
-
-def format_entry(entry):
-    (row, col), weight, desc = entry
-    return f"[{row:02d},{col:02d}], {{{weight:05d}}}, {desc}"
-
 def main():
 
     firstIteration = True
