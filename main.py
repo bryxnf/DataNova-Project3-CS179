@@ -61,9 +61,7 @@ def main():
     totBalMin += parkToFirstCost + lastToParkCost
 
     logger.log(f"Balance solution found, it will require {totalBalMove} moves/{totBalMin} minutes.")
-
-    visualGrid = loadManifest(filePath)
-    containersVisualization(visualGrid, craneParkLocation="source")
+    
 
     resp = input("Press Enter to begin the move sequence, or type anything to cancel: ").strip()
 
@@ -72,43 +70,90 @@ def main():
         print("Move sequence cancelled.")
         return 
 
-    totalMoves = len(moveHistory)
-    currShip = ship
+    visualGrid = loadManifest(filePath)
 
-    for i, move in enumerate(moveHistory, 1):
-        startPos, endPos, containerWeight, _ = move
-        currShip = currShip.perform_move(startPos, endPos, containerWeight)
+    moveIndex = 0
 
-        sr, sc = startPos
-        tr, tc = endPos
-
-        cell = visualGrid[sr - 1][sc - 1]
-
-        if isinstance(cell, dict):
-            container_dict = cell
-        else:
-            container_dict = {"weight": containerWeight, "info": ""}
-
-        visualGrid[sr - 1][sc - 1] = "UNUSED"
-        visualGrid[tr - 1][tc - 1] = container_dict
-        if i == totalMoves:
-            # Final Frame where we highlight only the parked position of crane as endpoint
-            # and endPos is the final position of where the box is as green
-            containersVisualization(visualGrid, source=endPos, target=None, craneParkLocation="target")
-        else:
-            containersVisualization(visualGrid, source=startPos, target=endPos, craneParkLocation=None)
+    for i in range(1, totalBalMove + 1):
+        startPos, endPos, containerWeight, costToMoveCurrBox = (
+            moveHistory[moveIndex].start_pos,
+            moveHistory[moveIndex].end_pos,
+            moveHistory[moveIndex].container_weight,
+            moveHistory[moveIndex].cost
+        )
 
         startFmt = f"[{startPos[0]:02d}, {startPos[1]:02d}]"
         endFmt = f"[{endPos[0]:02d}, {endPos[1]:02d}]"
+        
+        if i == 1:
+            containersVisualization(visualGrid, craneParkLocation="source")
+            logger.log(f"1 of {totalBalMove}: Move from PARK to {startFmt}, {parkToFirstCost} minutes")
 
-        logger.log(f"{i} of {totalBalMove}: {startFmt} was moved to {endFmt}")
-        print("If you want to record a note about this move, type it now. Otherwise, press \"Enter\" to continue:")
-        description = input().strip()
-        if description:
-            logger.log(description)
-    logger.log(f"Finished a Cycle. Manifest HMMAlgecirasOUTBOUND.txt was written to desktop, and a reminder pop-up to operator to send file was displayed.")
 
-    logger.progShutDown(shipName)
+
+
+
+
+
+
+
+
+
+    '''OLD CODE THAT DOESNT WORK PROPERLY'''
+    # firstStart = moveHistory[0].start_pos
+    # firstStartFmt = f"[{firstStart[0]:02d}, {firstStart[1]:02d}]"
+
+    # containersVisualization(visualGrid, craneParkLocation="source")
+
+    # logger.log(f"1 of {totalBalMove}: Move from PARK to {firstStartFmt}, {parkToFirstCost} minutes")
+
+    # totalMoves = len(moveHistory)
+    # currShip = ship
+
+    # for i, move in enumerate(moveHistory, 1):
+    #     startPos, endPos, containerWeight, costToMoveCurrBox = move
+    #     currShip = currShip.perform_move(startPos, endPos, containerWeight)
+
+    #     sr, sc = startPos
+    #     tr, tc = endPos
+
+    #     cell = visualGrid[sr - 1][sc - 1]
+
+    #     if isinstance(cell, dict):
+    #         container_dict = cell
+    #     else:
+    #         container_dict = {"weight": containerWeight, "info": ""}
+
+    #     visualGrid[sr - 1][sc - 1] = "UNUSED"
+    #     visualGrid[tr - 1][tc - 1] = container_dict
+
+    #     if i == totalBalMove:
+    #         # Final Frame where we highlight only the parked position of crane as endpoint
+    #         # and endPos is the final position of where the box is as green
+    #         containersVisualization(visualGrid, source=endPos, target=None, craneParkLocation="target")
+    #     else:
+    #         containersVisualization(visualGrid, source=startPos, target=endPos, craneParkLocation=None)
+
+    #     startFmt = f"[{startPos[0]:02d}, {startPos[1]:02d}]"
+    #     endFmt = f"[{endPos[0]:02d}, {endPos[1]:02d}]"
+
+    #     logger.log(f"{i + 1} of {totalBalMove}: {startFmt} was moved to {endFmt}, {costToMoveCurrBox}")
+    #     print("If you want to record a note about this move, type it now. Otherwise, press \"Enter\" to continue:")
+    #     description = input().strip()
+    #     if description:
+    #         logger.log(description)
+    #     firstStart = moveHistory[0].start_pos
+
+    # lastStart = moveHistory[-1].end_pos
+    # lastStartFmt = f"[{lastStart[0]:02d}, {lastStart[1]:02d}]"
+
+    # containersVisualization(visualGrid, source=None, target=None, craneParkLocation="target")
+
+    # logger.log(f"3 of {totalBalMove}: Move from {lastStartFmt} to PARK, {lastToParkCost} minutes")
+
+    # logger.log(f"Finished a Cycle. Manifest HMMAlgecirasOUTBOUND.txt was written to desktop, and a reminder pop-up to operator to send file was displayed.")
+
+    # logger.progShutDown(shipName)
 
 
 if __name__ == "__main__":
