@@ -51,7 +51,8 @@ def main():
         logger.log(f"Balance solution was not found for {os.path.basename(filePath)}")
         logger.log("A* could not find a solution because node expansion was too long or there was an error in the manifest file")
         return
-
+    parkToFirstCost = 0
+    lastToParkCost = 0
     if moveHistory:
         # Cost to move from PARK to the first container position
         parkToFirstCost = ship.calculate_park_to_position_cost(moveHistory[0].start_pos)
