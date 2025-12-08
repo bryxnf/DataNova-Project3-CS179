@@ -6,7 +6,6 @@ from astar import a_star_search
 from shipVisuals import loadManifest, containersVisualization
 from manifestExporter import save_manifest_to_desktop
 from log import Logger
-import time
 
 
 def format_entry(entry):
@@ -14,13 +13,15 @@ def format_entry(entry):
     return f"[{row:02d},{col:02d}], {{{weight:05d}}}, {desc}"
 
 def main():
-    logger = Logger()
 
-    logger.log("Program was started.")
-
+    firstIteration = True
     endTheEntireProg = ""
 
     while(endTheEntireProg == ""):
+        logger = Logger()
+        if firstIteration:
+            logger.log("Program was started.")
+            firstIteration = False
 
         filename = input("Enter the path of the Ship file: ").strip()
         logger.log(f"User entered path: {filename}")
@@ -54,7 +55,7 @@ def main():
 
         if moveHistory is None:
             logger.log(f"Balance solution was not found for {os.path.basename(filePath)}")
-            logger.log("A* could not find a solution because node expansion was too long or there was an error in the manifest file")
+            logger.log("A* search stopped: search space grew too large or the manifest data may contain an error.")
             return
         parkToFirstCost = 0
         lastToParkCost = 0
@@ -130,11 +131,11 @@ def main():
         except Exception as e:
             logger.log(f"ERROR: Failed to save manifest to desktop: {e}")
             logger.logRaw(f"Error details: {str(e)}")
+            logger.progShutDown(shipName)
+
+        logger.progShutDown(shipName)
         
         endTheEntireProg = input("Press \"Enter\" to continue the program, or type any key to quit: ").strip()
-
-    logger.progShutDown(shipName)
-
 
 if __name__ == "__main__":
     main()
