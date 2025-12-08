@@ -4,6 +4,7 @@ from manifestParser import ManifestParser
 from container_ship import ContainerShip
 from astar import a_star_search
 from shipVisuals import loadManifest, containersVisualization
+from manifestExporter import save_manifest_to_desktop
 from log import Logger
 import time
 
@@ -90,8 +91,7 @@ def main():
             containersVisualization(visualGrid, target=startPos, craneParkLocation="source")
             logger.log(f"{i} of {totalBalMove}: Move from PARK to {startFmt}, {parkToFirstCost} minutes")
         elif i == totalBalMove:
-            print(f"END FORMAT: {endFmt}")
-            containersVisualization(visualGrid, source=endFmt, target=None, craneParkLocation="target")
+            containersVisualization(visualGrid, source=endPos, target=None, craneParkLocation="target")
             logger.log(f"{i} of {totalBalMove}: Move from {endFmt} to PARK, {lastToParkCost} minutes")    
         else:
             containersVisualization(visualGrid, source=startPos, target=endPos, craneParkLocation=None)
@@ -119,6 +119,13 @@ def main():
         description = input().strip()
         if description:
             logger.log(description)
+    
+    try:
+        outputPath = save_manifest_to_desktop(currShip, visualGrid, shipName)
+        logger.log(f"Finished a Cycle. Manifest {os.path.basename(outputPath)} was written to desktop, and a reminder pop-up to operator to send file was displayed.")
+    except Exception as e:
+        logger.log(f"ERROR: Failed to save manifest to desktop: {e}")
+        logger.logRaw(f"Error details: {str(e)}")
 
     logger.progShutDown(shipName)
 
