@@ -52,13 +52,16 @@ def main():
         logger.log("A* could not find a solution because node expansion was too long or there was an error in the manifest file")
         return
 
-    # If the ship balance was not found
-    # logger.log(f"Balance solution was not found for {os.path.basename(filePath)}")
-    # else we do this
+    if moveHistory:
+        # Cost to move from PARK to the first container position
+        parkToFirstCost = ship.calculate_park_to_position_cost(moveHistory[0].start_pos)
+        # Cost to move from the last container position back to PARK
+        lastToParkCost = ship.calculate_position_to_park_cost(moveHistory[-1].end_pos)
+    totBalMin += parkToFirstCost + lastToParkCost
+
     logger.log(f"Balance solution found, it will require {totalBalMove} moves/{totBalMin} minutes.")
 
     visualGrid = loadManifest(filePath)
-    print("\033[0m", end="")
     containersVisualization(visualGrid, craneParkLocation="source")
 
     resp = input("Press Enter to begin the move sequence, or type anything to cancel: ").strip()
@@ -87,24 +90,21 @@ def main():
 
         visualGrid[sr - 1][sc - 1] = "UNUSED"
         visualGrid[tr - 1][tc - 1] = container_dict
-        print(f"Curr iteration {i}")
-        print(f"Total moves we have {totalMoves}")
-        print("\033[0m", end="")
-        containersVisualization(visualGrid, source=startPos, target=endPos, craneParkLocation="target" if i == totalMoves else None)
+        if i == totalMoves:
+            # Final Frame where we highlight only the parked position of crane as endpoint
+            # and endPos is the final position of where the box is as green
+            containersVisualization(visualGrid, source=endPos, target=None, craneParkLocation="target")
+        else:
+            containersVisualization(visualGrid, source=startPos, target=endPos, craneParkLocation=None)
 
-
-        # Fix this visualization part        
-        # currShip = currShip.perform_move(startPos,endPos, containerWeight)
-        # containersVisualization(currShip, source=startPos, target=endPos, craneParkLocation="target" if i == totalMoves else None)
         startFmt = f"[{startPos[0]:02d}, {startPos[1]:02d}]"
         endFmt = f"[{endPos[0]:02d}, {endPos[1]:02d}]"
 
-        logger.log(f"{startFmt} was moved to {endFmt}")
+        logger.log(f"{i} of {totalBalMove}: {startFmt} was moved to {endFmt}")
         print("If you want to record a note about this move, type it now. Otherwise, press \"Enter\" to continue:")
         description = input().strip()
         if description:
             logger.log(description)
-    
     logger.log(f"Finished a Cycle. Manifest HMMAlgecirasOUTBOUND.txt was written to desktop, and a reminder pop-up to operator to send file was displayed.")
 
     logger.progShutDown(shipName)

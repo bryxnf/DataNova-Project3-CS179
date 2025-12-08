@@ -1,4 +1,3 @@
-print("\033[0m", end = "")
 
 def loadManifest(shipCase):    
     shipGrid = [["NAN" for _ in range(12)] for _ in range(8)]
@@ -32,7 +31,6 @@ def containersVisualization(shipGrid, source = None, target = None, craneParkLoc
     rowWidth = 3             #the size of each cell vertically and horizontally
 
     print("\n")
-    print(original, end = "")   # HARD reset before crane
 
     if craneParkLocation == "source":
         print(" " * 6 + f"{green}XXX{original}")
@@ -40,8 +38,6 @@ def containersVisualization(shipGrid, source = None, target = None, craneParkLoc
         print(" " * 6 + f"{red}XXX{original}")
     else:
         print(" " * 6 + "XXX")
-
-    print(original, end = "")   # HARD reset after crane
 
     for row in range(8, 0, -1): #going from the top of the ship downward
         if row in (8, 1):
@@ -66,7 +62,7 @@ def containersVisualization(shipGrid, source = None, target = None, craneParkLoc
             elif target == (row, column):
                 info_padded = f"{red}{info_padded}{original}"
             rows += info_padded
-        print(rows + original)
+        print(rows)
 
     #the column headers
     columnHeader = ""
@@ -77,7 +73,7 @@ def containersVisualization(shipGrid, source = None, target = None, craneParkLoc
             columnHeader += "  ".rjust(columnWidth)
             
     print(" " * rowWidth + columnHeader)
-    print(original + "\n")
+    print("\n")
 
 def main():
     grid = loadManifest("manifests/ShipCase5.txt")
