@@ -47,7 +47,8 @@ def main():
     ship = ContainerShip(filePath)
     moveHistory, totBalMin, totalBalMove = a_star_search(ship, max_expansions=50000)
 
-    if moveHistory is None: # THINK ABOUT THIS LATER
+    if moveHistory is None:
+        logger.log(f"Balance solution was not found for {os.path.basename(filePath)}")
         logger.log("A* could not find a solution because node expansion was too long or there was an error in the manifest file")
         return
 
@@ -57,6 +58,7 @@ def main():
     logger.log(f"Balance solution found, it will require {totalBalMove} moves/{totBalMin} minutes.")
 
     visualGrid = loadManifest(filePath)
+    print("\033[0m", end="")
     containersVisualization(visualGrid, craneParkLocation="source")
 
     resp = input("Press Enter to begin the move sequence, or type anything to cancel: ").strip()
@@ -85,6 +87,9 @@ def main():
 
         visualGrid[sr - 1][sc - 1] = "UNUSED"
         visualGrid[tr - 1][tc - 1] = container_dict
+        print(f"Curr iteration {i}")
+        print(f"Total moves we have {totalMoves}")
+        print("\033[0m", end="")
         containersVisualization(visualGrid, source=startPos, target=endPos, craneParkLocation="target" if i == totalMoves else None)
 
 

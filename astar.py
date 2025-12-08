@@ -35,6 +35,9 @@ def a_star_search(intial_ship: ContainerShip, max_expansions: int = 100000):
 
         if ship.is_goal():
             num_moves = len(node.move_history)
+            if num_moves > 0:
+                num_moves += 2
+                
             return node.move_history, g_cost, num_moves
         
         expansions += 1

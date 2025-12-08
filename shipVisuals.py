@@ -1,3 +1,5 @@
+print("\033[0m", end = "")
+
 def loadManifest(shipCase):    
     shipGrid = [["NAN" for _ in range(12)] for _ in range(8)]
 
@@ -18,8 +20,8 @@ def loadManifest(shipCase):
             else:
                 shipGrid[rows - 1][columns - 1] = {
                     "weight": tareInfo,
-                    "info": itemInfo}
-                
+                    "info": itemInfo}      
+                 
     return shipGrid
 
 def containersVisualization(shipGrid, source = None, target = None, craneParkLocation = None):   #can call in the source and the target for each turn using visualization
@@ -30,19 +32,22 @@ def containersVisualization(shipGrid, source = None, target = None, craneParkLoc
     rowWidth = 3             #the size of each cell vertically and horizontally
 
     print("\n")
+    print(original, end = "")   # HARD reset before crane
+
     if craneParkLocation == "source":
-        print(" " * 6 + f"{green}XXX{original}")   #the crane
+        print(" " * 6 + f"{green}XXX{original}")
     elif craneParkLocation == "target":
         print(" " * 6 + f"{red}XXX{original}")
     else:
         print(" " * 6 + "XXX")
+
+    print(original, end = "")   # HARD reset after crane
 
     for row in range(8, 0, -1): #going from the top of the ship downward
         if row in (8, 1):
             rowNumber = f"{row:02d}"
         else:
             rowNumber = "  "
-        
         rows = f"{rowNumber}".ljust(rowWidth)
 
         for column in range(1, 13):
@@ -61,7 +66,7 @@ def containersVisualization(shipGrid, source = None, target = None, craneParkLoc
             elif target == (row, column):
                 info_padded = f"{red}{info_padded}{original}"
             rows += info_padded
-        print(rows)
+        print(rows + original)
 
     #the column headers
     columnHeader = ""
@@ -70,13 +75,15 @@ def containersVisualization(shipGrid, source = None, target = None, craneParkLoc
             columnHeader += f"{column:02d}".rjust(columnWidth)
         else:
             columnHeader += "  ".rjust(columnWidth)
-    
+            
     print(" " * rowWidth + columnHeader)
-    print("\n")
+    print(original + "\n")
 
 def main():
-    grid = loadManifest("testFiles/ShipCase5.txt")
-    containersVisualization(grid, None, (2, 5), "source")
+    grid = loadManifest("manifests/ShipCase5.txt")
+    containersVisualization(grid, None, (1, 5), "source")
+    containersVisualization(grid, (1, 5), (1, 7))
+    containersVisualization(grid, (1, 7), None, "target")
 
 if __name__ == "__main__":
     main()
