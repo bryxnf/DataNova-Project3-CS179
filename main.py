@@ -71,6 +71,7 @@ def main():
         return 
 
     visualGrid = loadManifest(filePath)
+    currShip = ship
 
     moveIndex = 0
 
@@ -86,9 +87,40 @@ def main():
         endFmt = f"[{endPos[0]:02d}, {endPos[1]:02d}]"
         
         if i == 1:
-            containersVisualization(visualGrid, craneParkLocation="source")
-            logger.log(f"1 of {totalBalMove}: Move from PARK to {startFmt}, {parkToFirstCost} minutes")
+            containersVisualization(visualGrid, target=startPos, craneParkLocation="source")
+            logger.log(f"{i} of {totalBalMove}: Move from PARK to {startFmt}, {parkToFirstCost} minutes")
+        elif i == totalBalMove:
+            print(f"END FORMAT: {endFmt}")
+            containersVisualization(visualGrid, source=endFmt, target=None, craneParkLocation="target")
+            logger.log(f"{i} of {totalBalMove}: Move from {endFmt} to PARK, {lastToParkCost} minutes")    
+        else:
+            containersVisualization(visualGrid, source=startPos, target=endPos, craneParkLocation=None)
+            logger.log(f"{i} of {totalBalMove}: {startFmt} was moved to {endFmt}, {costToMoveCurrBox} minutes")
 
+            currShip = currShip.perform_move(startPos, endPos, containerWeight)
+            sr, sc = startPos
+            tr, tc = endPos
+
+            cell = visualGrid[sr - 1][sc - 1]
+
+            if isinstance(cell, dict):
+                container_dict = cell
+            else:
+                container_dict = {"weight": containerWeight, "info": ""}
+
+            visualGrid[sr - 1][sc - 1] = "UNUSED"
+            visualGrid[tr - 1][tc - 1] = container_dict
+            
+            if moveIndex < len(moveHistory) - 1:
+                moveIndex += 1
+
+
+        print("If you want to record a note about this move, type it now. Otherwise, press \"Enter\" to continue:")
+        description = input().strip()
+        if description:
+            logger.log(description)
+
+    logger.progShutDown(shipName)
 
 
 
