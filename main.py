@@ -56,8 +56,13 @@ def main():
     # else we do this
     logger.log(f"Balance solution found, it will require {totalBalMove + 2} moves/{totBalMin} minutes.")
 
-    for i, move in enumerate(moveHistory, 1):   
-        startPos, endPos, _, _ = move
+    totalMoves = len(moveHistory)
+
+    for i, move in enumerate(moveHistory, 1):
+        startPos, endPos, containerWeight, _ = move
+        # Fix this visualization part
+        # currShip = ship.perform_move(startPos,endPos, containerWeight)
+        # containersVisualization(currShip, source=startPos, target=endPos, craneParkLocation="target" if i == totalMoves else None)
         startFmt = f"[{startPos[0]:02d}, {startPos[1]:02d}]"
         endFmt = f"[{endPos[0]:02d}, {endPos[1]:02d}]"
 
